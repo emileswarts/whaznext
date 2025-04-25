@@ -1,6 +1,6 @@
-# syntax=docker.io/docker/dockerfile:1
+FROM  --platform=linux/amd64 node:23-alpine3.20
 
-FROM node:23-alpine3.20
+RUN apk add --update musl-dev gcc cargo
 
 WORKDIR /app
 

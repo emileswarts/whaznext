@@ -1,13 +1,13 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import mysql from  'mysql2/promise';
 import { invoices, customers, revenue, users } from '../lib/placeholder-data';
 import {Revenue} from "@/app/lib/definitions";
 
 let connectionParams = {
   host: 'db',
-  port: 3306,
+  port: 33060,
   user: 'root',
-  password: 'root',
+  password: 'test',
   database: 'default'
 }
 
@@ -113,17 +113,16 @@ async function seedUsers() {
 //   return insertedRevenue;
 // }
 //
-// export async function GET() {
-//   try {
-//     const result = await sql.begin((sql) => [
-//       seedUsers(),
-//       seedCustomers(),
-//       seedInvoices(),
-//       seedRevenue(),
-//     ]);
-//
-//     return Response.json({ message: 'Database seeded successfully' });
-//   } catch (error) {
-//     return Response.json({ error }, { status: 500 });
-//   }
-// }
+export async function GET() {
+  try {
+    const result = await seedUsers()
+    //   // seedCustomers(),
+    //   // seedInvoices(),
+    //   // seedRevenue(),
+    // ]);
+
+    return Response.json({ message: 'Database seeded successfully' });
+  } catch (error) {
+    return Response.json({ error }, { status: 500 });
+  }
+}
