@@ -7,6 +7,9 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: test
+      MYSQL_DATABASE: mydb
+    volumes:
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
     networks:
       - my_network
 

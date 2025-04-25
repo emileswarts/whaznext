@@ -1,0 +1,4 @@
+CREATE DATABASE mydb;
+GRANT ALL PRIVILEGES ON mydb TO 'root'@'%';
+GRANT ALL PRIVILEGES ON mydb.* TO 'root'@'%';
+USE mydb

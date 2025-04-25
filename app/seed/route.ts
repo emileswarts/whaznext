@@ -5,39 +5,42 @@ import {Revenue} from "@/app/lib/definitions";
 
 let connectionParams = {
   host: 'db',
-  port: 33060,
   user: 'root',
   password: 'test',
-  database: 'default'
+  database: 'mydb'
 }
 
 async function seedUsers() {
+  console.log("we are starting")
   const connection = await mysql.createConnection(connectionParams)
-  const query_ext = `CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-  await connection.execute(query_ext)
+
+    console.log("connection established")
+    const query_drop = `DROP TABLE users;`;
+    await connection.execute(query_drop)
 
   const query_create = `
-    CREATE TABLE IF NOT EXISTS users (
-      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    CREATE TABLE users (
+      id VARCHAR(255) DEFAULT (UUID()) PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
-      email TEXT NOT NULL UNIQUE,
-      password TEXT NOT NULL
+      email VARCHAR(255) NOT NULL UNIQUE,
+      password VARCHAR(255) NOT NULL
     );
   `;
   await connection.execute(query_create)
 
+    console.log("table created")
   const insertedUsers = await Promise.all(
     users.map(async (user) => {
       const hashedPassword = await bcrypt.hash(user.password, 10);
       const users_query = `
-        INSERT INTO users (id, name, email, password)
-        VALUES (${user.id}, ${user.name}, ${user.email}, ${hashedPassword})
-        ON CONFLICT (id) DO NOTHING;
+        INSERT INTO users (name, email, password)
+        VALUES (${mysql.escape(user.name)}, ${mysql.escape(user.email)}, ${mysql.escape(hashedPassword)});
       `;
       await connection.execute(users_query, users)
     }),
   );
 
+    console.log("users inserted")
   return insertedUsers;
 }
 
