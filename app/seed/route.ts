@@ -95,27 +95,35 @@ async function seedUsers() {
 //   return insertedCustomers;
 // }
 //
-// async function seedRevenue() {
-//   await sql`
-//     CREATE TABLE IF NOT EXISTS revenue (
-//       month VARCHAR(4) NOT NULL UNIQUE,
-//       revenue INT NOT NULL
-//     );
-//   `;
-//
-//   const insertedRevenue = await Promise.all(
-//     revenue.map(
-//       (rev) => sql`
-//         INSERT INTO revenue (month, revenue)
-//         VALUES (${rev.month}, ${rev.revenue})
-//         ON CONFLICT (month) DO NOTHING;
-//       `,
-//     ),
-//   );
-//
-//   return insertedRevenue;
-// }
-//
+async function seedRevenue() {
+  const connection = await mysql.createConnection(connectionParams)
+
+  const query_drop = `DROP TABLE revenue;`;
+  await connection.execute(query_drop)
+  await connection.execute(query_drop)
+
+  const query_create = `
+    CREATE TABLE IF NOT EXISTS revenue (
+      month VARCHAR(4) NOT NULL UNIQUE,
+      revenue INT NOT NULL
+    );
+  `;
+  await connection.execute(query_create)
+
+  const insertedRevenue = await Promise.all(
+  revenue.map(async (rev) => {
+        const revenue_query = `
+          INSERT INTO revenue (month, revenue)
+          VALUES (${rev.month}, ${rev.revenue});
+        `;
+
+        await connection.execute(revenue_query, rev)
+      }),
+  );
+
+  return insertedRevenue;
+}
+
 export async function GET() {
   try {
     const result = await seedUsers()
