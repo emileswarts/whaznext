@@ -1,4 +1,4 @@
-import mysql from  'mysql2/promise';
+import mysql, {FieldPacket, RowDataPacket} from 'mysql2/promise';
 
 import {
   CustomerField,
@@ -14,21 +14,28 @@ let connectionParams = {
 host: 'db',
 port: 3306,
 user: 'root',
-password: 'root',
-database: 'default'
+password: 'test',
+database: 'mydb'
 }
 
 const connection = await mysql.createConnection(connectionParams)
 
-export async function fetchRevenue() {
+interface IRevenue extends RowDataPacket {
+  month: string;
+  revenue: number;
+}
+
+export async function fetchRevenue(): Promise<Array<Revenue>> {
   try {
     const query = `SELECT * FROM revenue`
     const connection = await mysql.createConnection(connectionParams)
-    let values: Revenue[] = []
-    const data = await connection.execute(query, values)
+    const [rows]: [IRevenue[], FieldPacket[]] = await connection.query<IRevenue[]>(query, [])
     connection.end
     console.log('Data fetch completed after 3 seconds.');
-    return data;
+    console.log(rows)
+
+    return rows;
+
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch');

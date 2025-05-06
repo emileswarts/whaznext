@@ -32,15 +32,12 @@ async function seedUsers() {
   const insertedUsers = await Promise.all(
     users.map(async (user) => {
       const hashedPassword = await bcrypt.hash(user.password, 10);
-      const users_query = `
-        INSERT INTO users (name, email, password)
-        VALUES (${mysql.escape(user.name)}, ${mysql.escape(user.email)}, ${mysql.escape(hashedPassword)});
-      `;
-      await connection.execute(users_query, users)
+      const users_query = 'INSERT INTO `users`(`name`, `email`, `password`) VALUES (?, ?, ?)';
+      await connection.query(users_query, [user.name, user.email, hashedPassword])
     }),
   );
 
-    console.log("users inserted")
+  connection.end()
   return insertedUsers;
 }
 
@@ -98,8 +95,7 @@ async function seedUsers() {
 async function seedRevenue() {
   const connection = await mysql.createConnection(connectionParams)
 
-  const query_drop = `DROP TABLE revenue;`;
-  await connection.execute(query_drop)
+  const query_drop = `DROP TABLE IF EXISTS revenue;`;
   await connection.execute(query_drop)
 
   const query_create = `
@@ -112,24 +108,22 @@ async function seedRevenue() {
 
   const insertedRevenue = await Promise.all(
   revenue.map(async (rev) => {
-        const revenue_query = `
-          INSERT INTO revenue (month, revenue)
-          VALUES (${rev.month}, ${rev.revenue});
-        `;
-
-        await connection.execute(revenue_query, rev)
+        const revenue_query = 'INSERT INTO `revenue` (`month`, `revenue`) VALUES (?, ?)';
+        const values =  [ rev.month, rev.revenue ]
+        await connection.query(revenue_query, values)
       }),
   );
 
+  connection.end()
   return insertedRevenue;
 }
 
 export async function GET() {
   try {
-    const result = await seedUsers()
+    seedUsers()
     //   // seedCustomers(),
     //   // seedInvoices(),
-    //   // seedRevenue(),
+    seedRevenue()
     // ]);
 
     return Response.json({ message: 'Database seeded successfully' });
