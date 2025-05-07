@@ -15,7 +15,7 @@ async function seedUsers() {
   const connection = await mysql.createConnection(connectionParams)
 
     console.log("connection established")
-    const query_drop = `DROP TABLE users;`;
+    const query_drop = `DROP TABLE IF EXISTS users;`;
     await connection.execute(query_drop)
 
   const query_create = `
@@ -41,57 +41,60 @@ async function seedUsers() {
   return insertedUsers;
 }
 
-// async function seedInvoices() {
-//   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-//
-//   await sql`
-//     CREATE TABLE IF NOT EXISTS invoices (
-//       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-//       customer_id UUID NOT NULL,
-//       amount INT NOT NULL,
-//       status VARCHAR(255) NOT NULL,
-//       date DATE NOT NULL
-//     );
-//   `;
-//
-//   const insertedInvoices = await Promise.all(
-//     invoices.map(
-//       (invoice) => sql`
-//         INSERT INTO invoices (customer_id, amount, status, date)
-//         VALUES (${invoice.customer_id}, ${invoice.amount}, ${invoice.status}, ${invoice.date})
-//         ON CONFLICT (id) DO NOTHING;
-//       `,
-//     ),
-//   );
-//
-//   return insertedInvoices;
-// }
-//
-// async function seedCustomers() {
-//   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-//
-//   await sql`
-//     CREATE TABLE IF NOT EXISTS customers (
-//       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-//       name VARCHAR(255) NOT NULL,
-//       email VARCHAR(255) NOT NULL,
-//       image_url VARCHAR(255) NOT NULL
-//     );
-//   `;
-//
-//   const insertedCustomers = await Promise.all(
-//     customers.map(
-//       (customer) => sql`
-//         INSERT INTO customers (id, name, email, image_url)
-//         VALUES (${customer.id}, ${customer.name}, ${customer.email}, ${customer.image_url})
-//         ON CONFLICT (id) DO NOTHING;
-//       `,
-//     ),
-//   );
-//
-//   return insertedCustomers;
-// }
-//
+async function seedInvoices() {
+  const connection = await mysql.createConnection(connectionParams)
+
+  const query_drop = `DROP TABLE IF EXISTS invoices;`;
+  const query_create = `
+    CREATE TABLE IF NOT EXISTS invoices (
+      id VARCHAR(255) DEFAULT (UUID()) PRIMARY KEY,
+      customer_id VARCHAR(255) DEFAULT(UUID()) NOT NULL,
+      amount INT NOT NULL,
+      status VARCHAR(255) NOT NULL,
+      date DATE NOT NULL
+    );
+  `;
+
+  await connection.query(query_drop)
+  await connection.query(query_create)
+  const insertedInvoices = await Promise.all(
+    invoices.map( async (invoice) => {
+        const query = 'INSERT INTO invoices (customer_id, amount, status, date) VALUES (?, ?, ?, ?)'
+        await connection.query(query, [invoice.customer_id, invoice.amount, invoice.status, invoice.date])
+      },
+    ),
+  );
+
+  return insertedInvoices;
+}
+
+async function seedCustomers() {
+  const connection = await mysql.createConnection(connectionParams)
+
+  const create_query = `
+    CREATE TABLE IF NOT EXISTS customers (
+      id VARCHAR(255) DEFAULT (UUID()) PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      email VARCHAR(255) NOT NULL,
+      image_url VARCHAR(255) NOT NULL
+    );
+  `;
+
+  await connection.query(create_query)
+
+  const insertedCustomers = await Promise.all(
+    customers.map( async (customer) => {
+      const create_query = `INSERT INTO customers (id, name, email, image_url)
+                            VALUES (?, ?, ?, ?)`;
+
+      connection.query(create_query, [customer.id, customer.name, customer.email, customer.image_url])
+    }
+  )
+)
+
+  return insertedCustomers;
+}
+
 async function seedRevenue() {
   const connection = await mysql.createConnection(connectionParams)
 
@@ -121,10 +124,9 @@ async function seedRevenue() {
 export async function GET() {
   try {
     seedUsers()
-    //   // seedCustomers(),
-    //   // seedInvoices(),
+    seedCustomers()
+    seedInvoices()
     seedRevenue()
-    // ]);
 
     return Response.json({ message: 'Database seeded successfully' });
   } catch (error) {

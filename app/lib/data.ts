@@ -42,7 +42,15 @@ export async function fetchRevenue(): Promise<Array<Revenue>> {
   }
 }
 
-export async function fetchLatestInvoices() {
+interface IInvoice extends RowDataPacket {
+  id: string;
+  name: string;
+  image_url: string;
+  email: string;
+  amount: string;
+}
+
+export async function fetchLatestInvoices(): Promise<Array<IInvoice>> {
   try {
     const query = `
       SELECT invoices.amount, customers.name, customers.image_url, customers.email, invoices.id
@@ -50,12 +58,12 @@ export async function fetchLatestInvoices() {
       JOIN customers ON invoices.customer_id = customers.id
       ORDER BY invoices.date DESC
       LIMIT 5`;
-    let values: LatestInvoiceRaw[] = []
 
-    const data = await connection.execute(query, values)
+    const [rows]: [IInvoice[], FieldPacket[]] = await connection.query(query)
+    console.log(rows)
     connection.end
-    console.log('Data fetch completed after 3 seconds.');
-    return data;
+    console.log('invoice fetch done');
+    return rows;
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch');
