@@ -4,8 +4,8 @@ RUN apk add --update musl-dev gcc cargo
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+# COPY package.json package-lock.json ./
+# RUN npm ci
 
-COPY ./ .
-CMD npm run dev
+#COPY ./ .
+CMD npm ci && npm run dev
