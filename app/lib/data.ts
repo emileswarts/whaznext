@@ -27,8 +27,9 @@ interface IRevenue extends RowDataPacket {
 
 export async function fetchRevenue(): Promise<Array<Revenue>> {
   try {
+    console.log("Fetching Revenue data")
+    await new Promise((resolve) => setTimeout(resolve, 3000))
     const query = `SELECT * FROM revenue`
-    const connection = await mysql.createConnection(connectionParams)
     const [rows]: [IRevenue[], FieldPacket[]] = await connection.query<IRevenue[]>(query, [])
     connection.end
     console.log('Data fetch completed after 3 seconds.');
@@ -100,6 +101,7 @@ export async function fetchLatestInvoices(): Promise<Array<IInvoice>> {
      const totalPaidInvoices = formatCurrency(data[2][0][0].paid ?? '0');
      const totalPendingInvoices = formatCurrency(data[2][0][0].pending ?? '0');
 
+     connection.end
      return {
        numberOfCustomers,
        numberOfInvoices,
