@@ -53,6 +53,7 @@ interface IInvoice extends RowDataPacket {
 
 export async function fetchLatestInvoices(): Promise<Array<IInvoice>> {
   try {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     const query = `
       SELECT invoices.amount, customers.name, customers.image_url, customers.email, invoices.id
       FROM invoices
