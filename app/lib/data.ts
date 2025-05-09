@@ -109,41 +109,54 @@ export async function fetchLatestInvoices(): Promise<Array<IInvoice>> {
    }
  }
 
- // const ITEMS_PER_PAGE = 6;
- // export async function fetchFilteredInvoices(
- //   query: string,
- //   currentPage: number,
- // ) {
- //   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
- // 
- //   try {
- //     const invoices = await sql<InvoicesTable[]>`
- //       SELECT
- //         invoices.id,
- //         invoices.amount,
- //         invoices.date,
- //         invoices.status,
- //         customers.name,
- //         customers.email,
- //         customers.image_url
- //       FROM invoices
- //       JOIN customers ON invoices.customer_id = customers.id
- //       WHERE
- //         customers.name ILIKE ${`%${query}%`} OR
- //         customers.email ILIKE ${`%${query}%`} OR
- //         invoices.amount::text ILIKE ${`%${query}%`} OR
- //         invoices.date::text ILIKE ${`%${query}%`} OR
- //         invoices.status ILIKE ${`%${query}%`}
- //       ORDER BY invoices.date DESC
- //       LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
- //     `;
- // 
- //     return invoices;
- //   } catch (error) {
- //     console.error('Database Error:', error);
- //     throw new Error('Failed to fetch invoices.');
- //   }
- // }
+interface IInvoicesTable extends RowDataPacket {
+  id: string;
+  customer_id: string;
+  name: string;
+  email: string;
+  image_url: string;
+  date: string;
+  amount: number;
+  status: 'pending' | 'paid';
+};
+
+ const ITEMS_PER_PAGE = 6;
+ export async function fetchFilteredInvoices(
+   query: string,
+   currentPage: number,
+ ) {
+   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+   const connection = await mysql.createConnection(connectionParams)
+
+   try {
+     const my_query = `
+       SELECT
+         invoices.id,
+         invoices.amount,
+         invoices.date,
+         invoices.status,
+         customers.name,
+         customers.email,
+         customers.image_url
+       FROM invoices
+       JOIN customers ON invoices.customer_id = customers.id
+       WHERE
+         LOWER(customers.name) LIKE "${`%${query}%`}" OR
+         LOWER(customers.email) LIKE "${`%${query}%`}" OR
+         LOWER(invoices.amount) LIKE "${`%${query}%`}" OR
+         LOWER(invoices.date) LIKE "${`%${query}%`}" OR
+         LOWER(invoices.status) LIKE "${`%${query}%`}"
+       ORDER BY invoices.date DESC
+       LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+     `;
+
+     const [rows]: [IInvoicesTable[], FieldPacket[]] = await connection.query<IInvoicesTable[]>(my_query, [])
+     return rows;
+   } catch (error) {
+     console.error('Database Error:', error);
+     throw new Error('Failed to fetch invoices.');
+   }
+ }
  // 
  // export async function fetchInvoicesPages(query: string) {
  //   try {
