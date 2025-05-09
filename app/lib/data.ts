@@ -157,27 +157,31 @@ interface IInvoicesTable extends RowDataPacket {
      throw new Error('Failed to fetch invoices.');
    }
  }
- // 
- // export async function fetchInvoicesPages(query: string) {
- //   try {
- //     const data = await sql`SELECT COUNT(*)
- //     FROM invoices
- //     JOIN customers ON invoices.customer_id = customers.id
- //     WHERE
- //       customers.name ILIKE ${`%${query}%`} OR
- //       customers.email ILIKE ${`%${query}%`} OR
- //       invoices.amount::text ILIKE ${`%${query}%`} OR
- //       invoices.date::text ILIKE ${`%${query}%`} OR
- //       invoices.status ILIKE ${`%${query}%`}
- //   `;
- // 
- //     const totalPages = Math.ceil(Number(data[0].count) / ITEMS_PER_PAGE);
- //     return totalPages;
- //   } catch (error) {
- //     console.error('Database Error:', error);
- //     throw new Error('Failed to fetch total number of invoices.');
- //   }
- // }
+
+ export async function fetchInvoicesPages(query: string) {
+   const connection = await mysql.createConnection(connectionParams)
+
+   try {
+     const data = await connection.query(`SELECT COUNT(*) as invoice_count
+     FROM invoices
+     JOIN customers ON invoices.customer_id = customers.id
+     WHERE
+       LOWER(customers.name) LIKE "${`%${query}%`}" OR
+       LOWER(customers.email) LIKE "${`%${query}%`}" OR
+       LOWER(invoices.amount) LIKE "${`%${query}%`}" OR
+       LOWER(invoices.date) LIKE "${`%${query}%`}" OR
+       LOWER(invoices.status) LIKE "${`%${query}%`}"
+   `);
+
+     console.log(data[0][0])
+     const totalPages = Math.ceil(Number(data[0][0].invoice_count) / ITEMS_PER_PAGE);
+
+     return totalPages;
+   } catch (error) {
+     console.error('Database Error:', error);
+     throw new Error('Failed to fetch total number of invoices.');
+   }
+ }
  // 
  // export async function fetchInvoiceById(id: string) {
  //   try {
