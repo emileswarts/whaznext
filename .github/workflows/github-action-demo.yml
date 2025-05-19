@@ -12,7 +12,7 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          SECRET: op://app-cicd/hello-world/secret
+          SECRET: op://test-puk/top-secret/password
 
       - name: Print masked secret
         run: 'echo "Secret: $SECRET"'
